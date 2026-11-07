@@ -1,13 +1,13 @@
 {% extends "base.html" if account_workspace else "auth_base.html" %}
-{% block mobile_title %}帳號與安全{% endblock %}
+{% block mobile_title %}{{ t("Account & security") }}{% endblock %}
 {% block main_class %}account-main{% endblock %}
 {% block body %}
 <div class="content">
   <main class="pane-inner account-page" id="account-content">
-    <a class="account-back" href="/settings">{{ icon('chevron-left', 'sm') }}設定</a>
-    <nav class="account-tabs" aria-label="帳號與安全">
-      <a href="/account" {% if request.url.path == '/account' %}aria-current="page"{% endif %}>我的帳號</a>
-      {% if account_user.role == 'owner' %}<a href="/admin/users" {% if request.url.path == '/admin/users' %}aria-current="page"{% endif %}>帳號管理</a>{% endif %}
+    <a class="account-back" href="/settings">{{ icon('chevron-left', 'sm') }}{{ t("Settings") }}</a>
+    <nav class="account-tabs" aria-label="{{ t("Account & security") }}">
+      <a href="/account" {% if request.url.path == '/account' %}aria-current="page"{% endif %}>{{ t("My account") }}</a>
+      {% if account_user.role == 'owner' %}<a href="/admin/users" {% if request.url.path == '/admin/users' %}aria-current="page"{% endif %}>{{ t("User management") }}</a>{% endif %}
     </nav>
     {{ self.account_content() }}
   </main>

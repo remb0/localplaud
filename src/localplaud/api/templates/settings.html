@@ -93,16 +93,16 @@
     </div>
     {% if plaud_auth.web_connect %}
     <div class="plaud-connect" data-plaud-connect>
-      <p class="sub" style="font-size:12px;margin:12px 0 0">{% if plaud_auth.ok %}這個工作區只會讀取這個 Plaud 帳號的錄音。要改連其他帳號，請重新連結。{% else %}連結你自己的 Plaud 帳號後，新上傳到 Plaud 的錄音會自動出現在這個工作區。localplaud 只會讀取清單與原始音檔。{% endif %}</p>
-      <div class="plaud-connect-actions"><button class="btn{% if plaud_auth.ok %} sec{% endif %}" type="button" data-plaud-connect-start>{{ '重新連結' if plaud_auth.ok else '連結 Plaud 帳號' }}</button>{% if plaud_auth.ok and not system_admin %}<button class="btn sec btn-danger" type="button" data-plaud-disconnect>中斷連結</button>{% endif %}</div>
+      <p class="sub" style="font-size:12px;margin:12px 0 0">{% if plaud_auth.ok %}{{ t("This workspace only reads recordings from this Plaud account. Reconnect to use a different account.") }}{% else %}{{ t("Connect your Plaud account to automatically import new recordings. localplaud only reads recording metadata and original audio.") }}{% endif %}</p>
+      <div class="plaud-connect-actions"><button class="btn{% if plaud_auth.ok %} sec{% endif %}" type="button" data-plaud-connect-start>{{ t("Reconnect") if plaud_auth.ok else t("Connect Plaud account") }}</button>{% if plaud_auth.ok and not system_admin %}<button class="btn sec btn-danger" type="button" data-plaud-disconnect>{{ t("Disconnect") }}</button>{% endif %}</div>
       <form class="plaud-connect-finish" data-plaud-connect-finish {% if not plaud_auth.pending %}hidden{% endif %}>
         <ol class="plaud-connect-steps">
-          <li>在剛開啟的 Plaud 分頁登入並按「授權」。</li>
-          <li>授權後分頁會跳到 <code>http://localhost:8199/…</code>，顯示「無法連上」是正常的。</li>
-          <li>複製那個分頁網址列的完整網址，貼在下面。</li>
+          <li>{{ t("Sign in and authorize access in the Plaud tab that just opened.") }}</li>
+          <li>{{ t("After authorization, Plaud redirects to") }} <code>http://localhost:8199/…</code>{{ t("A connection error here is normal when this Mac has no callback helper. You can still complete the connection by pasting the full URL below.") }}</li>
+          <li>{{ t("If this Mac has the callback helper, you will return here automatically. Otherwise copy the full URL from that tab and paste it below.") }}</li>
         </ol>
-        <label for="plaud-redirect-url">授權後的網址</label>
-        <div class="plaud-connect-row"><input class="input" id="plaud-redirect-url" name="redirect_url" type="url" inputmode="url" autocomplete="off" spellcheck="false" placeholder="http://localhost:8199/auth/callback?code=…" required><button class="btn" type="submit">完成連結</button></div>
+        <label for="plaud-redirect-url">{{ t("Authorization callback URL") }}</label>
+        <div class="plaud-connect-row"><input class="input" id="plaud-redirect-url" name="redirect_url" type="url" inputmode="url" autocomplete="off" spellcheck="false" placeholder="http://localhost:8199/auth/callback?code=…" required><button class="btn" type="submit">{{ t("Complete connection") }}</button></div>
         <p class="sub plaud-connect-status" role="status" aria-live="polite"></p>
       </form>
     </div>
@@ -116,8 +116,8 @@
       <div class="tile"><div class="k">{{ t('Reverse proxy') }}</div><div style="margin-top:4px">{{ t('External · not observable by localplaud') }}</div></div>
       <div class="tile"><div class="k">{{ t('Active sessions') }}</div><div style="margin-top:4px">{{ browser_sessions|length }}</div></div>
     </div>
-    <p class="sub" style="font-size:11.5px;margin:10px 0 0">{{ t(about.access.session_detail) }}. {% if accounts_enabled|default(false) %}帳號登入已啟用；共用密碼與 API token 無法存取此工作區。{% else %}{{ t('Configure login_password and session_secret before remote exposure; keep auth_token for API clients.') }}{% endif %}</p>
-    {% if accounts_enabled|default(false) %}<p style="margin:12px 0"><a class="btn btn-sm" href="/account">我的帳號與登入方式</a> {% if system_admin %}<a class="btn btn-sm" href="/admin/users">管理使用者</a>{% endif %}</p>{% endif %}
+    <p class="sub" style="font-size:11.5px;margin:10px 0 0">{{ t(about.access.session_detail) }}. {% if accounts_enabled|default(false) %}{{ t("Account login is enabled; shared passwords and API tokens cannot access this workspace.") }}{% else %}{{ t('Configure login_password and session_secret before remote exposure; keep auth_token for API clients.') }}{% endif %}</p>
+    {% if accounts_enabled|default(false) %}<p style="margin:12px 0"><a class="btn btn-sm" href="/account">{{ t("My account & sign-in methods") }}</a> {% if system_admin %}<a class="btn btn-sm" href="/admin/users">{{ t("Manage users") }}</a>{% endif %}</p>{% endif %}
     {% if about.access.browser_login_configured %}<div style="display:grid;gap:8px;margin-top:13px" id="browser-session-list">
       {% for item in browser_sessions %}<div class="tile settings-session">
         <div class="settings-row-main"><strong>{{ t('This session') if item.current else t('Browser session') }}</strong>{% if item.current %} <span class="chip on">{{ t('current') }}</span>{% endif %}<div class="sub" style="font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="{{ item.user_agent }}">{{ item.user_agent }}</div><div class="sub" style="font-size:10.5px">{{ t('Last active') }}: {{ item.last_seen_at[:16]|replace('T',' · ') }} · {{ t('Expires') }}: {{ item.expires_at[:10] }}</div></div>
@@ -132,7 +132,7 @@
     <strong>{{ t('Workspace preferences') }}</strong>
     <p class="sub" style="margin:4px 0 12px">{{ t('Durable workspace preferences shared by every browser using localplaud.') }}</p>
     <form id="workspace-preferences-form" class="settings-form">
-      <label class="sub settings-field">{{ t('Workspace name') }}<input class="search-input" name="workspace_name" maxlength="80" required value="{{ workspace_preferences.workspace_name }}"{% if workspace_preferences.workspace_name_locked %} readonly aria-describedby="workspace-name-help"{% endif %}>{% if workspace_preferences.workspace_name_locked %}<span id="workspace-name-help" class="sub" style="font-size:11.5px">與帳號名稱相同，無法另外修改。</span>{% endif %}</label>
+      <label class="sub settings-field">{{ t('Workspace name') }}<input class="search-input" name="workspace_name" maxlength="80" required value="{{ workspace_preferences.workspace_name }}"{% if workspace_preferences.workspace_name_locked %} readonly aria-describedby="workspace-name-help"{% endif %}>{% if workspace_preferences.workspace_name_locked %}<span id="workspace-name-help" class="sub" style="font-size:11.5px">{{ t("This matches the account username and cannot be changed separately.") }}</span>{% endif %}</label>
       <label class="sub settings-field">{{ t('Interface language') }}<select class="search-input select" name="locale">{% for code, label in supported_locales.items() %}<option value="{{ code }}" {% if workspace_preferences.locale==code %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></label>
       <label class="sub settings-field">{{ t('Timezone') }}<input class="search-input" name="timezone" list="timezone-suggestions" maxlength="64" required value="{{ workspace_preferences.timezone }}"></label>
       <datalist id="timezone-suggestions"><option value="Asia/Taipei"><option value="UTC"><option value="Asia/Tokyo"><option value="America/Los_Angeles"><option value="Europe/London"></datalist>
@@ -224,7 +224,7 @@
     <a class="sf-pref-row" href="/notifications"><span class="sf-pref-label">{{ t('Messages & notifications') }}</span><span class="sf-pref-value">{% if speech_prefs.unread_notifications %}{{ speech_prefs.unread_notifications }} {{ t('unread') }}<span class="sf-dot" aria-hidden="true"></span>{% endif %}</span>{{ icon('chevron-right', 'sm') }}</a>
     <h3 class="sf-pref-head">{{ t('Security') }}</h3>
     <a class="sf-pref-row" href="#access-security"><span class="sf-pref-label">{{ t('Web login') }}</span><span class="sf-pref-value">{{ t('On') if about.access.browser_login_configured else t('Off') }}</span>{{ icon('chevron-right', 'sm') }}</a>
-    <p class="sf-pref-help">{% if accounts_enabled|default(false) %}使用 Google 或本地密碼登入。每個帳號都有自己的私有工作區，由擁有者核准新帳號。{% else %}{{ t('Protect this workspace with a password and revocable browser sessions.') }}{% endif %}</p>
+    <p class="sf-pref-help">{% if accounts_enabled|default(false) %}{{ t("Sign in with Google or a local password. Each account has a private workspace; the owner approves new accounts.") }}{% else %}{{ t('Protect this workspace with a password and revocable browser sessions.') }}{% endif %}</p>
     {% if system_admin %}
     <a class="sf-pref-row" href="#privacy"><span class="sf-pref-label">{{ t('Privacy & data boundary') }}</span>{{ icon('chevron-right', 'sm') }}</a>
     {% endif %}
@@ -494,7 +494,7 @@
   {% else %}
   <section class="sf-settings-group" id="group-processing" aria-labelledby="group-processing-title">
   <h2 class="sf-settings-group-title" id="group-processing-title">{{ t('Speech & AI providers') }}</h2>
-  <div class="panel sf-settings-panel" id="shared-processing"><strong>由擁有者統一設定</strong><p class="sub" style="font-size:12px;margin:4px 0 0">轉錄、說話者辨識、AI 模型、運算資源與備份由這台伺服器的擁有者設定，所有工作區共用。你的錄音與筆記只存在你自己的工作區，其他帳號（包含擁有者）在介面中看不到。</p></div>
+  <div class="panel sf-settings-panel" id="shared-processing"><strong>{{ t("Managed by the owner") }}</strong><p class="sub" style="font-size:12px;margin:4px 0 0">{{ t("The server owner manages shared transcription, speaker recognition, AI models, compute and backup settings. Your recordings and notes remain private to your workspace, including from the owner.") }}</p></div>
   </section>
   {% endif %}
   <section class="sf-settings-group" id="group-integrations" data-sf-group="integrations" aria-labelledby="group-integrations-title">
@@ -590,19 +590,20 @@
 (()=>{const root=document.querySelector('[data-plaud-connect]');if(!root)return;
 const form=root.querySelector('[data-plaud-connect-finish]'),status=form.querySelector('.plaud-connect-status');
 const say=(text,error)=>{status.textContent=text;status.classList.toggle('error',!!error)};
-const detail=async r=>{const body=await r.json().catch(()=>({}));return body.detail||'連線失敗，請重新嘗試。'};
+const detail=async r=>{const body=await r.json().catch(()=>({}));return body.detail||{{ t("Connection failed. Please try again.")|tojson }}};
 root.querySelector('[data-plaud-connect-start]')?.addEventListener('click',async event=>{
   const button=event.currentTarget,tab=window.open('about:blank','_blank');button.disabled=true;
   try{const r=await fetch('/api/plaud/connect',{method:'POST'});if(!r.ok){tab?.close();say(await detail(r),true);form.hidden=false;return}
     const {authorization_url:url}=await r.json();if(tab){tab.opener=null;tab.location=url}else{location.assign(url);return}
     form.hidden=false;say('');form.querySelector('input').focus();
   }finally{button.disabled=false}});
-form.addEventListener('submit',async event=>{event.preventDefault();const button=form.querySelector('button');button.disabled=true;say('連結中…');
+form.addEventListener('submit',async event=>{event.preventDefault();const button=form.querySelector('button');button.disabled=true;say({{ t("Connecting…")|tojson }});
   try{const r=await fetch('/api/plaud/connect/complete',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({redirect_url:form.redirect_url.value})});
-    if(!r.ok){say(await detail(r),true);return}say('已連結。新的錄音會在下次同步時出現。');setTimeout(()=>location.reload(),900);
+    if(!r.ok){say(await detail(r),true);return}say({{ t("Connected. New recordings will appear at the next sync.")|tojson }});setTimeout(()=>location.reload(),900);
   }finally{button.disabled=false}});
-root.querySelector('[data-plaud-disconnect]')?.addEventListener('click',async()=>{if(!confirm('中斷後不會再同步新的錄音，已匯入的錄音會保留。確定中斷？'))return;
+root.querySelector('[data-plaud-disconnect]')?.addEventListener('click',async()=>{if(!confirm({{ t("Disconnect and stop syncing new recordings? Imported recordings will remain.")|tojson }}))return;
   const r=await fetch('/api/plaud/connection',{method:'DELETE'});if(r.ok)location.reload();else say(await detail(r),true)});
+
 })();
 </script>
 <style>

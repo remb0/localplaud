@@ -1,23 +1,23 @@
 {% extends "auth_base.html" %}
-{% block title %}登入{% endblock %}
+{% block title %}{{ t("Sign in") }}{% endblock %}
 {% block content %}
 <section class="auth-card" aria-labelledby="login-title">
-  <div class="eyebrow">歡迎回來</div>
-  <h1 id="login-title">登入 localplaud</h1>
-  <p class="sub">登入帳號，回到你的錄音與筆記。</p>
+  <div class="eyebrow">{{ t("Welcome back") }}</div>
+  <h1 id="login-title">{{ t("Sign in to localplaud") }}</h1>
+  <p class="sub">{{ t("Sign in to return to your recordings and notes.") }}</p>
   {% if error %}<div class="alert error" role="alert">{{ error }}</div>{% endif %}
   {% if google_enabled %}
-  <a class="btn sec google" href="/auth/google?next={{ next|default('/')|urlencode }}"><span aria-hidden="true">G</span>使用 Google 登入</a>
-  <div class="divider"><span>或使用帳號登入</span></div>
+  <a class="btn sec google" href="/auth/google?next={{ next|default('/')|urlencode }}"><span aria-hidden="true">G</span>{{ t("Sign in with Google") }}</a>
+  <div class="divider"><span>{{ t("Or sign in with your account") }}</span></div>
   {% endif %}
-  <form method="post" action="/login" class="stack" data-submit-label="登入中…">
+  <form method="post" action="/login" class="stack" data-submit-label="{{ t("Signing in…") }}">
     <input class="input" type="hidden" name="next" value="{{ next|default('/') }}">
-    <div><label for="identifier">帳號或 Email</label><input class="input" id="identifier" name="identifier" autocomplete="username" autocapitalize="none" spellcheck="false" maxlength="254" required></div>
-    <div><label for="password">密碼</label><input class="input" id="password" name="password" type="password" autocomplete="current-password" maxlength="256" required></div>
-    <button class="btn" type="submit">登入</button>
+    <div><label for="identifier">{{ t("Username or email") }}</label><input class="input" id="identifier" name="identifier" autocomplete="username" autocapitalize="none" spellcheck="false" maxlength="254" required></div>
+    <div><label for="password">{{ t("Password") }}</label><input class="input" id="password" name="password" type="password" autocomplete="current-password" maxlength="256" required></div>
+    <button class="btn" type="submit">{{ t("Sign in") }}</button>
   </form>
-  <p class="auth-switch">還沒有帳號？ <a href="/register">建立帳號</a></p>
-  <details class="help"><summary>忘記密碼？</summary><p>請聯絡這個工作區的管理員協助復原帳號。若已連結 Google，也可以使用 Google 登入後設定新密碼。</p></details>
-  <p class="fine-print">新帳號經擁有者核准後，會有自己的私有工作區。</p>
+  <p class="auth-switch">{{ t("No account yet?") }} <a href="/register">{{ t("Create account") }}</a></p>
+  <details class="help"><summary>{{ t("Forgot your password?") }}</summary><p>{{ t("Contact the administrator to recover your account. If Google is linked, sign in with Google and set a new password.") }}</p></details>
+  <p class="fine-print">{{ t("New accounts receive their own private workspace after owner approval.") }}</p>
 </section>
 {% endblock %}

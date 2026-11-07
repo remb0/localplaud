@@ -84,7 +84,7 @@ def test_web_connection_is_per_workspace_and_single_use(settings, plaud_account)
         assert connected_workspace_ids(session, settings) == [1, 2]
 
         # The same Plaud account cannot back a second workspace.
-        with pytest.raises(PlaudConnectionError, match="另一個工作區"):
+        with pytest.raises(PlaudConnectionError, match="another workspace"):
             _connect(session, settings, 3)
         assert not tokens_path(settings, 3).exists()
 
@@ -237,11 +237,11 @@ def test_members_connect_through_open_api_when_the_host_uses_mcp(
             start_connection(session, settings)
         status = _connect(session, settings, 2)
         assert status["ok"] and status["provider"] == "official"
-        assert status["detail"] == "已連結" and "/" not in status["detail"]
+        assert status["detail"] == "Connected" and "/" not in status["detail"]
         with workspace_scope(2):
             assert isinstance(make_plaud_client(settings.plaud), WorkspacePlaudClient)
         with workspace_scope(3):
-            assert connection_status(session, settings)["detail"] == "尚未連結"
+            assert connection_status(session, settings)["detail"] == "Not connected"
 
 
 def test_connection_failures_are_user_correctable(settings, plaud_account, monkeypatch):
@@ -259,7 +259,7 @@ def test_connection_failures_are_user_correctable(settings, plaud_account, monke
             connections.finish_connection(
                 session, settings, f"http://localhost:abc/auth/callback?code=x&state={state}"
             )
-        with pytest.raises(connections.PlaudConnectionError, match="再試一次"):
+        with pytest.raises(connections.PlaudConnectionError, match="try again"):
             connections.finish_connection(
                 session, settings, f"http://localhost:8199/auth/callback?code=x&state={state}"
             )

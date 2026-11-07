@@ -440,7 +440,9 @@ def _fmt_dt(context, ms: int | None) -> str:
     timezone = ZoneInfo(preferences.get("timezone", "UTC"))
     hour_cycle = preferences.get("hour_cycle", "24")
     locale = preferences.get("locale", "en")
-    if locale == "zh-Hant-TW":
+    if locale == "nl":
+        pattern = "%d-%m-%Y · %I:%M %p" if hour_cycle == "12" else "%d-%m-%Y · %H:%M"
+    elif locale == "zh-Hant-TW":
         pattern = "%Y年%m月%d日 · %I:%M %p" if hour_cycle == "12" else "%Y年%m月%d日 · %H:%M"
     else:
         pattern = "%b %d, %Y · %I:%M %p" if hour_cycle == "12" else "%b %d, %Y · %H:%M"
@@ -1251,7 +1253,7 @@ class WorkspacePreferencesBody(BaseModel):
     density: Literal["comfortable", "compact"] = "comfortable"
     timezone: str = Field(min_length=1, max_length=64)
     hour_cycle: Literal["12", "24"] = "24"
-    locale: Literal["en", "zh-Hant-TW"] = "en"
+    locale: Literal["en", "zh-Hant-TW", "nl"] = "en"
     auto_process_new_recordings: bool = True
     ask_enabled: bool = False
 
@@ -1277,8 +1279,14 @@ def workspace_preferences_get():
 
 @app.put("/api/preferences/workspace")
 def workspace_preferences_update(body: WorkspacePreferencesBody):
+    from ..worker.summary_templates import bootstrap_note_templates
+
     with session_scope() as session:
-        return save_workspace_preferences(session, body.model_dump())
+        previous_locale = get_workspace_preferences(session)["locale"]
+        preferences = save_workspace_preferences(session, body.model_dump())
+        if "nl" in {previous_locale, preferences["locale"]} and previous_locale != body.locale:
+            bootstrap_note_templates(session)
+        return preferences
 
 
 @app.get("/healthz")

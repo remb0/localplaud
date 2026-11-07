@@ -11,7 +11,7 @@ document.addEventListener('submit', event => {
   const password = form.elements.namedItem('password');
   const confirmation = form.elements.namedItem('password_confirm');
   if (password && confirmation && password.value !== confirmation.value) {
-    event.preventDefault(); confirmation.setCustomValidity('兩次輸入的密碼不相同。'); confirmation.reportValidity();
+    event.preventDefault(); confirmation.setCustomValidity(confirmation.dataset.mismatch || 'Passwords do not match.'); confirmation.reportValidity();
     confirmation.addEventListener('input', () => confirmation.setCustomValidity(''), {once:true});
     return;
   }

@@ -127,6 +127,9 @@ def _duration_human(duration_ms: int | None, locale: str) -> str:
     if locale == "zh-Hant-TW":
         parts = [f"{hours}小時"] if hours else []
         return " ".join(parts + [f"{minutes}分鐘", f"{seconds}秒"])
+    if locale == "nl":
+        parts = [f"{hours} uur"] if hours else []
+        return " ".join(parts + [f"{minutes} min", f"{seconds} sec"])
     parts = [f"{hours} hr"] if hours else []
     return " ".join(parts + [f"{minutes} min", f"{seconds} sec"])
 

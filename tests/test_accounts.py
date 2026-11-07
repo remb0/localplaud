@@ -113,7 +113,7 @@ def test_pending_account_keeps_workspace_metadata_out_of_page(client, monkeypatc
     monkeypatch.setattr(web, "_base_ctx", forbidden_workspace_context)
     response = client.get("/account")
     assert response.status_code == 200
-    assert "等待擁有者核准" in response.text
+    assert "Waiting for owner approval" in response.text
     assert 'id="workspace-sidebar"' not in response.text
     assert 'id="account-content"' not in response.text
     assert '/static/css/app.css' in response.text

@@ -98,6 +98,14 @@ def relative_datetime(
         clock = moment.strftime("%H:%M")
     zh = locale == "zh-Hant-TW"
     day = moment.date()
+    if locale == "nl":
+        if day == today:
+            return f"Vandaag om {clock}"
+        if day == today - timedelta(days=1):
+            return f"Gisteren om {clock}"
+        if day.year == today.year:
+            return f"{day:%d-%m} om {clock}"
+        return f"{day:%d-%m-%Y}"
     if day == today:
         return f"今天 {clock}" if zh else f"Today at {clock}"
     if day == today - timedelta(days=1):

@@ -1,7 +1,7 @@
 """Per-area translation catalogs merged into ``localplaud.i18n``.
 
-Each module in this package exports ``ZH_HANT_TW: dict[str, str]`` (English
-source string -> Traditional Chinese for Taiwan). Splitting catalogs by product
+Modules may export ``ZH_HANT_TW`` or ``NL`` dictionaries mapping English
+source strings to Traditional Chinese for Taiwan or Dutch. Splitting catalogs by product
 area keeps parallel UI work from colliding in one giant dictionary. Modules are
 merged in name order; the core catalog in ``i18n.py`` wins on conflicts.
 """
@@ -13,7 +13,7 @@ import pkgutil
 
 
 def extra_catalog(locale: str) -> dict[str, str]:
-    attribute = {"zh-Hant-TW": "ZH_HANT_TW"}.get(locale)
+    attribute = {"zh-Hant-TW": "ZH_HANT_TW", "nl": "NL"}.get(locale)
     if attribute is None:
         return {}
     merged: dict[str, str] = {}

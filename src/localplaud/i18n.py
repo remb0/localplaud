@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Callable
 
-SUPPORTED_LOCALES = {"en": "English", "zh-Hant-TW": "繁體中文（台灣）"}
+SUPPORTED_LOCALES = {"en": "English", "zh-Hant-TW": "繁體中文（台灣）", "nl": "Nederlands"}
 
 _ZH_HANT_TW = {
     "No recognizable speech": "未辨識到可用語音",
@@ -1249,7 +1249,10 @@ def _with_extensions(locale: str, core: dict[str, str]) -> dict[str, str]:
     return extra_catalog(locale) | core
 
 
-CATALOGS = {"zh-Hant-TW": _with_extensions("zh-Hant-TW", _ZH_HANT_TW)}
+CATALOGS = {
+    "zh-Hant-TW": _with_extensions("zh-Hant-TW", _ZH_HANT_TW),
+    "nl": _with_extensions("nl", {}),
+}
 
 
 def catalog(locale: str) -> dict[str, str]:

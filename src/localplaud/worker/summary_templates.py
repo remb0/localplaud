@@ -286,7 +286,10 @@ def bootstrap_note_templates(session) -> None:
     from sqlalchemy import func, select
 
     from ..db.models import NoteTemplate
+    from ..preferences import get_workspace_preferences
+    from .template_localizations_nl import DUTCH
 
+    dutch = get_workspace_preferences(session)["locale"] == "nl"
     removed_keys: list[str] = []
     for row in session.scalars(
         select(NoteTemplate).where(
@@ -321,7 +324,10 @@ def bootstrap_note_templates(session) -> None:
             "instructions": template.instructions,
             "prompt_mode": template.prompt_mode,
             "provenance": template.provenance,
+            "description": None,
         }
+        if dutch and key in DUTCH:
+            expected.update(DUTCH[key], provenance="plaud-web-translated-nl")
         if (
             current is not None
             and current.is_builtin

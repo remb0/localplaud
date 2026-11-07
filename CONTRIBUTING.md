@@ -62,6 +62,16 @@ failure/resume behavior. Web App changes also need real-browser verification at
 desktop and mobile widths, including empty, loading, degraded, error, and long
 content states. See [UI verification](tests/ui/README.md).
 
+## Maintain interface translations
+
+Keep English source strings in `t(...)` / `tr(...)` and update the locale
+catalogs together. Dutch (`nl`) uses `src/localplaud/i18n_ext/nl.py`. Keep brace
+placeholders, markup, shortcuts, technical identifiers and source meaning intact.
+Use consistent terms such as *opname*, *transcript*, *sjabloon* and
+*verwerkingsprofiel*. Unknown messages and technical diagnostics may fall back to
+English. The `test_dutch_interface.py` suite checks catalog coverage, language
+selection and preservation of prior built-in template versions.
+
 ## Preserve the product boundaries
 
 - Derive the primary workflow from raw audio and minimal metadata. Plaud AI

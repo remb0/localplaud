@@ -131,7 +131,18 @@ def google_email_authoritative(claims):
 
 
 def render(request, name, **context):
+    from ..i18n import translator
+    from ..preferences import get_workspace_preferences
     from .app import _base_ctx, templates
+
+    with session_scope() as session:
+        preferences = get_workspace_preferences(session)
+    translate = translator(preferences["locale"])
+    context.setdefault("t", translate)
+    context.setdefault("locale", preferences["locale"])
+    for key in ("error", "notice"):
+        if isinstance(context.get(key), str):
+            context[key] = translate(context[key])
 
     # Always load the complete account document, including its form behavior.
     # Older open tabs may still request these links as HTMX partial navigation.
@@ -210,7 +221,7 @@ async def gate(request, call_next):
     if worker:
         return await call_next(request)
     if request.method not in {"GET", "HEAD", "OPTIONS"} and not csrf_ok(request):
-        return JSONResponse({"detail": "請從本站重新提交。"}, status_code=403)
+        return JSONResponse({"detail": "Submit the form again from this site."}, status_code=403)
     user, session = authenticated(request)
     request.state.account_user = user_dict(user) if user else None
     request.state.account_session = session
@@ -238,12 +249,12 @@ async def gate(request, call_next):
                         request,
                         "auth_denied.html",
                         account_user=user_dict(user),
-                        error="這是系統管理功能，只有擁有者可以使用。",
+                        error="This administration feature is only available to the owner.",
                     )
                     response.status_code = 403
                     return response
                 return JSONResponse(
-                    {"detail": "這是系統管理功能，只有擁有者可以使用。"}, status_code=403
+                    {"detail": "This administration feature is only available to the owner."}, status_code=403
                 )
         if destination:
             code = 401 if not user else 403
@@ -252,7 +263,7 @@ async def gate(request, call_next):
             if request.method == "GET" and "text/html" in request.headers.get("accept", ""):
                 return RedirectResponse(destination, status_code=303)
             return JSONResponse(
-                {"detail": "請先登入。" if not user else "帳號仍在等待擁有者核准。"},
+                {"detail": "Sign in first." if not user else "The account is still waiting for owner approval."},
                 status_code=code,
             )
     share = re.fullmatch(r"/share/([^/]+)(?:/audio)?", path)
@@ -315,7 +326,7 @@ def rate_limit(request):
                 # Commit the increment even when refusing; all workers see the same budget.
                 db.commit()
                 raise HTTPException(
-                    429, "嘗試次數過多，請稍後再試。", headers={"Retry-After": "600"}
+                    429, "Too many attempts. Please try again later.", headers={"Retry-After": "600"}
                 )
 
 
@@ -375,9 +386,9 @@ def login_page(request, next="/", error=None):
         "auth_login.html",
         next=safe_next(next),
         error=(
-            "此 Email 已有帳號，請先以密碼登入，再從帳號頁連結 Google。"
+            "An account already uses this email. Sign in with its password, then link Google from My account."
             if error == "link_required"
-            else "登入未完成，請重試；若 Google 尚未設定，請使用密碼登入。"
+            else "Sign-in did not complete. Try again, or use your password if Google is not configured."
         )
         if error
         else None,
@@ -392,7 +403,7 @@ def login_submit(request, identifier, password, next):
             request,
             "auth_login.html",
             next=safe_next(next),
-            error="帳號或密碼不正確。",
+            error="Incorrect username or password.",
             google_enabled=google_enabled(),
         )
     with session_scope() as db:
@@ -410,7 +421,7 @@ def login_submit(request, identifier, password, next):
                 request,
                 "auth_login.html",
                 next=safe_next(next),
-                error="帳號或密碼不正確。",
+                error="Incorrect username or password.",
                 google_enabled=google_enabled(),
             )
         token = new_session(db, user, request)
@@ -436,7 +447,7 @@ def register_submit(
     rate_limit(request)
     username, email = username.strip().lower(), email.strip().lower()
     cfg = get_settings().api
-    error = "無法建立帳號。請確認資料，或使用既有登入方式。"
+    error = "Could not create the account. Check the details or use an existing sign-in method."
     if (
         not re.fullmatch(r"[a-z0-9][a-z0-9_.-]{2,39}", username)
         or len(email) > 254
@@ -492,8 +503,8 @@ def account_page(request: Request, error: str | None = None, notice: str | None 
         "account.html",
         account_user=user,
         sessions=sessions,
-        error="操作未完成，請確認密碼或重新登入後再試。" if error else None,
-        notice="設定已更新。" if notice else None,
+        error="The action did not complete. Check your password or sign in again." if error else None,
+        notice="Settings updated." if notice else None,
         google_linked=linked,
         google_enabled=google_enabled(),
         has_password=has_password,
@@ -546,8 +557,8 @@ def revoke_session(session_id: int, request: Request):
 
 
 USER_NOTICES = {
-    "updated": "帳號狀態已更新。",
-    "created": "帳號已建立，並有自己的空白工作區。請私下把初始密碼交給對方。",
+    "updated": "Account status updated.",
+    "created": "Account created with its own empty workspace. Share the initial password privately.",
 }
 
 
@@ -602,7 +613,7 @@ def users_page(request: Request, error: str | None = None, notice: str | None = 
     return render_users(
         request,
         user,
-        error="無法變更此帳號。" if error else None,
+        error="This account cannot be changed." if error else None,
         notice=USER_NOTICES.get(notice or ""),
     )
 
@@ -620,15 +631,15 @@ def create_account_user(
     draft = {"username": username, "email": email}
     error = None
     if not re.fullmatch(r"[a-z0-9][a-z0-9_.-]{2,39}", username):
-        error = "帳號需為 3–40 個字元，只能使用小寫英數字、底線、點或連字號，並以英數字開頭。"
+        error = "Use 3–40 lowercase letters, numbers, underscores, dots or hyphens, starting with a letter or number."
     elif len(email) > 254 or not re.fullmatch(r"[^\s@]+@[^\s@]+\.[^\s@]+", email):
-        error = "請輸入有效的 Email。"
+        error = "Enter a valid email address."
     elif not valid_password(password):
-        error = "初始密碼至少需要 12 個字元。"
+        error = "The initial password must contain at least 12 characters."
     if error:
         return render_users(request, actor, create_error=error, draft=draft)
     cfg = get_settings().api
-    taken = "此帳號或 Email 已被使用。"
+    taken = "This username or email is already in use."
     try:
         with session_scope() as db:
             if (
@@ -924,7 +935,7 @@ async def google_callback(request: Request, state: str = "", code: str = "", err
 def recover_account_password(password, username=None):
     """Local operator recovery only; owner must already exist via verified Google bootstrap."""
     if not valid_password(password):
-        raise ValueError("密碼長度必須為 12 至 256 字元。")
+        raise ValueError("Passwords must contain 12–256 characters.")
     with session_scope() as db:
         owner = db.scalar(
             select(AccountUser).where(
@@ -935,7 +946,7 @@ def recover_account_password(password, username=None):
         )
         if not owner:
             raise ValueError(
-                "找不到帳號。" if username else "請先使用已設定的 Google 帳號建立擁有者。"
+                "Account not found." if username else "First create the owner using the configured Google account."
             )
         owner.password_hash = PASSWORDS.hash(password)
         db.execute(delete(BrowserSession).where(BrowserSession.user_id == owner.id))

@@ -91,7 +91,7 @@ def connection_status(session: Session, settings: Settings) -> dict:
         status = _store(settings).status()
         if workspace_id != DEFAULT_WORKSPACE_ID:
             # Members never see host paths or token internals.
-            status["detail"] = "已連結" if status["ok"] else "尚未連結"
+            status["detail"] = "Connected" if status["ok"] else "Not connected"
     else:
         from .mcp import PlaudMcpClient
 
@@ -109,7 +109,7 @@ def connection_status(session: Session, settings: Settings) -> dict:
 def start_connection(session: Session, settings: Settings) -> str:
     """Create a single-use PKCE request and return Plaud's authorization URL."""
     if not uses_web_connection(settings):
-        raise PlaudConnectionError("這個工作區的 Plaud 連線由主機上的 Plaud MCP 設定管理。")
+        raise PlaudConnectionError("This workspace uses the Plaud MCP connection configured on the host.")
     official = settings.plaud.official
     request = create_authorization_request(
         official.authorization_url, official.client_id, official.redirect_uri
@@ -144,7 +144,7 @@ def finish_connection(session: Session, settings: Settings, pasted: str) -> dict
     pending = session.get(KeyValue, key)
     value = dict(pending.value or {}) if pending else {}
     if not value or value.get("expires_at", 0) < time.time():
-        raise PlaudConnectionError("連線要求已過期，請重新按「連結 Plaud 帳號」。")
+        raise PlaudConnectionError("The connection request has expired. Select Connect Plaud account again.")
     official = settings.plaud.official
     parsed = urlparse(pasted.strip())
     expected = urlparse(official.redirect_uri)
@@ -155,14 +155,14 @@ def finish_connection(session: Session, settings: Settings, pasted: str) -> dict
         address = None
     if address != (expected.hostname, expected.port, expected.path):
         raise PlaudConnectionError(
-            "請貼上授權後瀏覽器網址列的完整網址（以 http://localhost 開頭）。"
+            "Paste the complete authorization callback URL starting with http://localhost."
         )
     if params.get("error"):
-        raise PlaudConnectionError("Plaud 未授權這次連線，請重新嘗試。")
+        raise PlaudConnectionError("Plaud did not authorize this connection. Please try again.")
     state = (params.get("state") or [""])[0]
     code = (params.get("code") or [""])[0]
     if not code or state != value.get("state"):
-        raise PlaudConnectionError("這個網址不屬於目前的連線要求，請重新按「連結 Plaud 帳號」。")
+        raise PlaudConnectionError("This URL does not match the current connection request. Reconnect your Plaud account.")
     # The request is single use, whatever happens next.
     session.delete(pending)
     session.flush()
@@ -188,13 +188,13 @@ def finish_connection(session: Session, settings: Settings, pasted: str) -> dict
         with PlaudOfficialClient(verify) as client:
             account_id = _plaud_account_id(client.check_auth() or {})
         if account_id and _account_used_elsewhere(session, account_id):
-            raise PlaudConnectionError("這個 Plaud 帳號已連結到另一個工作區。")
+            raise PlaudConnectionError("This Plaud account is already connected to another workspace.")
         staging.chmod(0o600)
         staging.replace(_store(settings).tokens_path)
     except PlaudConnectionError:
         raise
     except Exception as exc:  # noqa: BLE001 - OAuth, network or Plaud API failure
-        raise PlaudConnectionError("Plaud 授權失敗，請重新按「連結 Plaud 帳號」再試一次。") from exc
+        raise PlaudConnectionError("Plaud authorization failed. Reconnect your Plaud account and try again.") from exc
     finally:
         staging.unlink(missing_ok=True)
     account_key = workspace_key(_ACCOUNT_KEY)
@@ -222,7 +222,7 @@ def _account_used_elsewhere(session: Session, account_id: str) -> bool:
 def disconnect(session: Session, settings: Settings) -> None:
     """Forget this workspace's Plaud tokens. Recordings already copied stay."""
     if (current_workspace_id() or DEFAULT_WORKSPACE_ID) == DEFAULT_WORKSPACE_ID:
-        raise PlaudConnectionError("原始工作區的 Plaud 連線由主機設定管理。")
+        raise PlaudConnectionError("The original workspace connection is managed through the host configuration.")
     tokens_path(settings).unlink(missing_ok=True)
     for key in (_ACCOUNT_KEY, _PENDING_KEY):
         row = session.get(KeyValue, workspace_key(key))

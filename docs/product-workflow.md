@@ -283,7 +283,7 @@ rerunning processing or local rule actions. See [`email-integrations.md`](email-
 Settings now groups its implemented account, processing, vocabulary, template,
 provider/profile, remote-worker, and authorized-integration controls behind a
 responsive section navigator with a direct system-health destination. Translated-
-interface locale now has a durable English / Traditional Chinese (Taiwan) selector,
+interface locale now has a durable English / Traditional Chinese (Taiwan) / Dutch selector,
 correct document language metadata, localized dates, and a centralized catalog used
 by the global shell and Home, Library, recording workspace, Search, Saved notes,
 Templates, Discover, Notifications, and Status pages. The recording workspace covers

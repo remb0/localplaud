@@ -23,7 +23,7 @@
       {% if plaud_connected %}
       <div class="empty-actions"><button class="btn" id="home-add-audio" data-open-import="device" type="button">{{ icon('upload', 'sm') }}{{ t('Import audio') }}</button><button class="btn sec" id="home-import-plaud" data-open-import="plaud" type="button">{{ icon('cloud', 'sm') }}{{ t('Import from Plaud') }}</button></div>
       {% else %}
-      <div class="empty-actions"><a class="btn" id="home-connect-plaud" href="/settings#plaud-account">{{ icon('cloud', 'sm') }}連結 Plaud 帳號</a><button class="btn sec" id="home-add-audio" data-open-import="device" type="button">{{ icon('upload', 'sm') }}{{ t('Import audio') }}</button></div>
+      <div class="empty-actions"><a class="btn" id="home-connect-plaud" href="/settings#plaud-account">{{ icon('cloud', 'sm') }}{{ t('Connect Plaud account') }}</a><button class="btn sec" id="home-add-audio" data-open-import="device" type="button">{{ icon('upload', 'sm') }}{{ t('Import audio') }}</button></div>
       {% endif %}
     </div>
     {% endif %}
